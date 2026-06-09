@@ -1,0 +1,103 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+enum UserRole {
+  ADMIN
+  AGENT
+}
+
+enum AgentStatus {
+  ONLINE
+  OFFLINE
+  BUSY
+}
+
+enum TicketStatus {
+  QUEUED
+  ACTIVE
+  RESOLVED
+}
+
+enum SenderType {
+  VISITOR
+  AGENT
+  SYSTEM
+}
+
+model Organization {
+  id            String         @id @default(uuid())
+  name          String
+  // Edge Case: The apiKey is unique and indexed so our middleware can verify external widgets at lightning speed
+  apiKey        String         @unique @default(uuid())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  // Relations
+  users         User[]
+  conversations Conversation[]
+
+  @@index([apiKey])
+}
+
+model User {
+  id             String        @id @default(uuid())
+  organizationId String
+  name           String
+  email          String        @unique
+  passwordHash   String
+  role           UserRole      @default(AGENT)
+  status         AgentStatus   @default(OFFLINE)
+  
+  // Edge Case Guardrail: Sets a hard limit on how many concurrent chats an agent can handle simultaneously
+  maxConcurrentSlots Int       @default(5)
+  
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // Relations
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversations  Conversation[]
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+model Conversation {
+  id               String       @id @default(uuid())
+  organizationId   String
+  agentId          String?      // Nullable because a chat starts in the queue unassigned
+  visitorSessionId String       // Unique tracking token saved in the visitor's browser local storage
+  visitorName      String       @default("Anonymous Visitor")
+  status           TicketStatus @default(QUEUED)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  // Relations
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  agent            User?        @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  messages         Message[]
+
+  @@index([organizationId])
+  @@index([agentId])
+  @@index([visitorSessionId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  senderType     SenderType
+  senderId       String       // Can be an Agent's User ID or a Visitor's Session ID
+  content        String       @db.Text
+  createdAt      DateTime     @default(now())
+
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+}
+
