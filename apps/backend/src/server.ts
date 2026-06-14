@@ -3,6 +3,10 @@ import { createServer, Server as HTTPServer } from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
+import agentRoutes from './routes/agent.routes.js';
+import { initSocketServer } from './sockets/socket.server.js';
+import { pubClient, subClient } from './config/redis.js';
+import { prisma } from './config/db.js';
 // Load environment configurations safely
 dotenv.config();
 
@@ -49,7 +53,7 @@ app.use(cors({
 }));
 
 app.use('/api/v1/auth', authRoutes);
-
+app.use('/api/v1/agent', agentRoutes);
 // Strictly typed health check route
 app.get('/health', (req: Request, res: Response): void => {
   res.status(200).json({ 
@@ -67,7 +71,8 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction): void => {
     message: process.env.NODE_ENV === 'development' ? err.message : 'An unexpected exception occurred'
   });
 });
-
+// Initialize the Socket.io server with the shared HTTP engine
+initSocketServer(httpServer);
 // Boot the underlying HTTP listener
 const server = httpServer.listen(PORT, (): void => {
   console.log(`OmniNode Engine running on port: ${PORT}`);
@@ -77,11 +82,16 @@ const server = httpServer.listen(PORT, (): void => {
 const handleGracefulShutdown = (signal: string): void => {
   console.log(`\n System intercept: Received ${signal}. Disconnecting connections gracefully...`);
   
-  server.close((): void => {
+  server.close(async (): Promise<void> => {
     console.log('Core network ports closed. Clean environment shutdown complete.');
+    await pubClient.quit();
+    await subClient.quit();
+    await prisma.$disconnect();
+    
+    console.log('Redis cluster links and PostgreSQL connection pools severed cleanly.');
     process.exit(0);
   });
-
+  
   // Force close after 10 seconds if connections are stuck
   setTimeout((): void => {
     console.error('Timeout failure: Connections failed to detach in time. Forcing termination.');
