@@ -7,6 +7,8 @@ import agentRoutes from './routes/agent.routes.js';
 import { initSocketServer } from './sockets/socket.server.js';
 import { pubClient, subClient } from './config/redis.js';
 import { prisma } from './config/db.js';
+import './queues/ticket.worker.js';
+import { ticketWorker } from './queues/ticket.worker.js';
 // Load environment configurations safely
 dotenv.config();
 
@@ -84,6 +86,8 @@ const handleGracefulShutdown = (signal: string): void => {
   
   server.close(async (): Promise<void> => {
     console.log('Core network ports closed. Clean environment shutdown complete.');
+    const { ticketWorker } = await import('./queues/ticket.worker.js');
+    await ticketWorker.close();
     await pubClient.quit();
     await subClient.quit();
     await prisma.$disconnect();
