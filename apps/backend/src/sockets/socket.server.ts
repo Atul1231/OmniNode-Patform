@@ -76,6 +76,106 @@ export const initSocketServer = (httpServer: HTTPServer): Server => {
       }
     });
 
+
+    socket.on('webrtc-offer', (payload: { targetRoomId: string; offer: any }) => {
+      const { targetRoomId, offer } = payload;
+      
+      if (!targetRoomId || !offer) {
+        return socket.emit('error-alert', { error: 'Signaling Failure: Missing target destination or SDP offer data.' });
+      }
+
+      console.log(`WebRTC Signaling: Relaying Offer from ${socket.id} into room: ${targetRoomId}`);
+      
+      // Broadcast the offer to everyone in the target room *except* the sender
+      socket.to(targetRoomId).emit('webrtc-offer', {
+        senderSocketId: socket.id,
+        offer
+      });
+    });
+
+    /**
+     * Event: webrtc-answer
+     * Description: Relays the connection acceptance answer back to the original caller.
+     */
+    socket.on('webrtc-answer', (payload: { targetRoomId: string; answer: any }) => {
+      const { targetRoomId, answer } = payload;
+
+      if (!targetRoomId || !answer) {
+        return socket.emit('error-alert', { error: 'Signaling Failure: Missing target destination or SDP answer data.' });
+      }
+
+      console.log(`WebRTC Signaling: Relaying Answer from ${socket.id} into room: ${targetRoomId}`);
+
+      // Broadcast the answer to the target destination room
+      socket.to(targetRoomId).emit('webrtc-answer', {
+        senderSocketId: socket.id,
+        answer
+      });
+    });
+
+    /**
+     * Event: webrtc-ice-candidate
+     * Description: Relays network routing candidates to allow peers to negotiate direct connections.
+     */
+    socket.on('webrtc-ice-candidate', (payload: { targetRoomId: string; candidate: any }) => {
+      const { targetRoomId, candidate } = payload;
+
+      if (!targetRoomId || !candidate) {
+        return socket.emit('error-alert', { error: 'Signaling Failure: Missing target destination or ICE candidate data.' });
+      }
+
+      // Log transmissions at debug level to avoid spamming production console systems
+      socket.to(targetRoomId).emit('webrtc-ice-candidate', {
+        senderSocketId: socket.id,
+        candidate
+      });
+    });
+    /**
+     * Event: join-call-room
+     * Description: Safely bridges an authenticated participant into an isolated media streaming channel.
+     */
+    socket.on('join-call-room', (payload: { conversationId: string }) => {
+      const { conversationId } = payload;
+
+      if (!conversationId) {
+        return socket.emit('error-alert', { error: 'Room Failure: Missing required conversation identifier coordinate.' });
+      }
+
+      const callRoomId = `call:${conversationId}`;
+      
+      // Force the connection pipe into the isolated media tracking room
+      socket.join(callRoomId);
+      console.log(`WebRTC Room: Peer ${socket.id} successfully joined active media room: ${callRoomId}`);
+
+      // Broadcast an alert to the other peer in the room to trigger the WebRTC peer connection handshake initialization
+      socket.to(callRoomId).emit('user-joined-call', {
+        joinedSocketId: socket.id,
+        role: socket.role
+      });
+    });
+
+    /**
+     * Event: leave-call-room
+     * Description: Handles clean tracking tear-downs when a participant terminates or hangs up a call.
+     */
+    socket.on('leave-call-room', (payload: { conversationId: string }) => {
+      const { conversationId } = payload;
+
+      if (!conversationId) {
+        return socket.emit('error-alert', { error: 'Room Failure: Missing required conversation identifier coordinate.' });
+      }
+
+      const callRoomId = `call:${conversationId}`;
+      
+      // Remove the connection pipe from the isolated calling space
+      socket.leave(callRoomId);
+      console.log(`WebRTC Room: Peer ${socket.id} left call room: ${callRoomId}`);
+
+      // Notify the remaining peer immediately so their client UI can gracefully dismantle local media streams
+      socket.to(callRoomId).emit('user-left-call', {
+        leftSocketId: socket.id
+      });
+    });
     // Edge Case Guardrail: Clean up socket mappings upon client disconnection
     socket.on('disconnect', (reason) => {
       console.log(`Client disconnected (${socket.id}). Reason: ${reason}`);

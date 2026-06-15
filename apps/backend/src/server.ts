@@ -8,7 +8,7 @@ import { initSocketServer } from './sockets/socket.server.js';
 import { pubClient, subClient } from './config/redis.js';
 import { prisma } from './config/db.js';
 import './queues/ticket.worker.js';
-import { ticketWorker } from './queues/ticket.worker.js';
+import { webrtcRouter } from './routes/webrtc.routes.js';
 // Load environment configurations safely
 dotenv.config();
 
@@ -56,6 +56,7 @@ app.use(cors({
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/agent', agentRoutes);
+app.use('/api/webrtc', webrtcRouter);
 // Strictly typed health check route
 app.get('/health', (req: Request, res: Response): void => {
   res.status(200).json({ 
