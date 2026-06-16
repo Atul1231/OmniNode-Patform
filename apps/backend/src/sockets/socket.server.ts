@@ -53,6 +53,46 @@ export const initSocketServer = (httpServer: HTTPServer): Server => {
       }
     }
 
+    // --- VISITOR INITIALIZATION ROUTINE ---
+    if (socket.role === 'VISITOR' && socket.organizationId && socket.visitorSessionId) {
+      try {
+        let conversation = await prisma.conversation.findFirst({
+          where: {
+            organizationId: socket.organizationId,
+            visitorSessionId: socket.visitorSessionId
+          }
+        });
+
+        if (!conversation) {
+          conversation = await prisma.conversation.create({
+            data: {
+              organizationId: socket.organizationId,
+              visitorSessionId: socket.visitorSessionId,
+              visitorName: 'Site Visitor ' + socket.visitorSessionId.substring(socket.visitorSessionId.length - 4),
+              status: 'QUEUED'
+            }
+          });
+        }
+
+        socket.emit('channel-allocated', {
+          id: conversation.id,
+          organizationId: socket.organizationId,
+          visitorSessionId: socket.visitorSessionId
+        });
+
+        socket.to(tenantRoomId).emit('channel-allocated', {
+          id: conversation.id,
+          organizationId: socket.organizationId,
+          visitorSessionId: socket.visitorSessionId,
+          visitorName: conversation.visitorName
+        });
+
+      } catch (dbErr: any) {
+        console.error('Failed to provision visitor conversation:', dbErr.message);
+        socket.emit('error-alert', { error: 'Failed to provision conversation channel.' });
+      }
+    }
+
     console.log(`📡 Authenticated client ${socket.id} (${socket.role}) joined secure isolating space: ${tenantRoomId}`);
 
     // --- PHASE 5: WebRTC SIGNALING LISTENERS ---
@@ -94,7 +134,7 @@ export const initSocketServer = (httpServer: HTTPServer): Server => {
       socket.to(callRoomId).emit('user-joined-call', { joinedSocketId: socket.id, role: socket.role });
     });
 
-    socket.on('leave-call-room', (payload: { conversationId: string }) => {
+    socket.on('leave-call-room', async (payload: { conversationId: string }) => {
       const { conversationId } = payload;
       if (!conversationId) {
         return socket.emit('error-alert', { error: 'Room Failure: Missing required conversation identifier coordinate.' });
@@ -102,9 +142,33 @@ export const initSocketServer = (httpServer: HTTPServer): Server => {
       const callRoomId = `call:${conversationId}`;
       socket.leave(callRoomId);
       console.log(`WebRTC Room: Peer ${socket.id} left call room: ${callRoomId}`);
-      socket.to(callRoomId).emit('user-left-call', { leftSocketId: socket.id });
+      io?.to(`conversation:${conversationId}`).emit('user-left-call', { leftSocketId: socket.id });
     });
+    // --- PHASE 6: AGENT PRESENCE ADAPTIVE STATUS TOGGLE ---
+    socket.on('presence-status-change', async (payload: { status: 'AVAILABLE' | 'BUSY' }) => {
+      try {
+        const { status } = payload;
+        if (socket.role !== 'AGENT' && socket.role !== 'ADMIN') return;
 
+        console.log(`🎯 Presence Event: Agent ${socket.userId} shifted status manually to ${status}`);
+
+        // Update the agent status inside your Neon Postgres database instance
+        await prisma.user.update({
+          where: { id: socket.userId },
+          data: { status: status === 'AVAILABLE' ? 'ONLINE' : 'BUSY' } // Map to your schema status values
+        });
+
+        // Broadcast the real-time update to all other agents active within this specific tenant mapping room
+        io?.to(tenantRoomId).emit('agent-status-updated', {
+          userId: socket.userId,
+          status: status === 'AVAILABLE' ? 'ONLINE' : 'BUSY'
+        });
+
+      } catch (dbErr: any) {
+        console.error(`🚨 Failed to update manual presence status for agent ${socket.userId}:`, dbErr.message);
+        socket.emit('error-alert', { error: 'Database Synchronization Failure: Status update rejected.' });
+      }
+    });
     // --- PHASE 6: REAL-TIME MESSAGE PERSISTENCE ---
     socket.on('send-chat-message', async (payload: { conversationId: string; content: string }) => {
       try {
@@ -151,6 +215,16 @@ export const initSocketServer = (httpServer: HTTPServer): Server => {
       const targetRoomId = `conversation:${conversationId}`;
       socket.join(targetRoomId);
       console.log(`Room Routine: Client ${socket.id} joined conversation stream room: ${targetRoomId}`);
+    });
+
+    socket.on('disconnecting', () => {
+      // Auto-cleanup calls if client closes tab or loses network
+      socket.rooms.forEach(async room => {
+        if (room.startsWith('call:')) {
+          const conversationId = room.split(':')[1];
+          io?.to(`conversation:${conversationId}`).emit('user-left-call', { leftSocketId: socket.id });
+        }
+      });
     });
 
   socket.on('disconnect', async (reason) => {

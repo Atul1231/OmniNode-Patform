@@ -2,10 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { SocketProvider } from './context/SocketContext';
 import { LoginForm } from './components/LoginForm';
 import { AgentDashboard } from './components/AgentDashboard';
+import { useTheme } from './hooks/useTheme';
 
 export const App = () => {
-  // Initialize our state by checking if a valid session was already saved in localStorage
+  const { theme, toggleTheme } = useTheme();
+
+  // Initialize our state by checking:
+  // 1. URL params (for cross-app auth sync from widget site)
+  // 2. localStorage (for returning users)
   const [authState, setAuthState] = useState<{ token: string; organizationId: string } | null>(() => {
+    // Check URL params first — the widget onboarding site passes auth via ?token=X&orgId=Y
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get('token');
+    const urlOrgId = urlParams.get('orgId');
+
+    if (urlToken && urlOrgId) {
+      // Save to localStorage and clean the URL
+      localStorage.setItem('omninode_token', urlToken);
+      localStorage.setItem('omninode_org_id', urlOrgId);
+      window.history.replaceState({}, '', window.location.pathname);
+      return { token: urlToken, organizationId: urlOrgId };
+    }
+
+    // Fallback: check localStorage
     const savedToken = localStorage.getItem('omninode_token');
     const savedOrgId = localStorage.getItem('omninode_org_id');
     
@@ -36,17 +55,12 @@ export const App = () => {
   };
 
   if (!authState) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-slate-950">
-        <LoginForm onAuthSuccess={handleAuthSuccess} />
-      </div>
-    );
+    return <LoginForm onAuthSuccess={handleAuthSuccess} theme={theme} onToggleTheme={toggleTheme} />;
   }
 
   return (
     <SocketProvider token={authState.token} organizationId={authState.organizationId}>
-      {/* We pass the handleSignOut function straight down to our dashboard panel header */}
-      <AgentDashboard onSignOut={handleSignOut} />
+      <AgentDashboard onSignOut={handleSignOut} theme={theme} onToggleTheme={toggleTheme} />
     </SocketProvider>
   );
 };
