@@ -133,3 +133,67 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     next(error);
   }
 };
+
+export const registerAgent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { workspaceKey, name, email, password } = req.body;
+
+    if (!workspaceKey || !name || !email || !password) {
+      res.status(400).json({ error: 'Missing Required Fields: workspaceKey, name, email, and password are all mandatory.' });
+      return;
+    }
+
+    if (password.length < 8) {
+      res.status(400).json({ error: 'Security Constraint: Password must be at least 8 characters long.' });
+      return;
+    }
+
+    const org = await prisma.organization.findUnique({ where: { apiKey: workspaceKey } });
+    if (!org) {
+      res.status(404).json({ error: 'Invalid Workspace Key: No organization found with that access key.' });
+      return;
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      res.status(409).json({ error: 'Conflict Error: An account with this email address already exists.' });
+      return;
+    }
+
+    const saltRounds = 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    const agent = await prisma.user.create({
+      data: {
+        organizationId: org.id,
+        name,
+        email: email.toLowerCase().trim(),
+        passwordHash,
+        role: 'AGENT',
+        status: 'ONLINE',
+      },
+    });
+
+    const tokenPayload = {
+      userId: agent.id,
+      organizationId: org.id,
+      role: agent.role,
+    };
+
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET as string, { expiresIn: '1d' });
+
+    res.status(201).json({
+      message: 'Agent profile established and joined workspace successfully.',
+      token,
+      user: {
+        id: agent.id,
+        name: agent.name,
+        email: agent.email,
+        role: agent.role,
+        organizationId: agent.organizationId,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

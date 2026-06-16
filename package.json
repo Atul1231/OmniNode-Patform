@@ -6,9 +6,13 @@
     "apps/*"
   ],
   "scripts": {
+    "setup": "npm install && npm run prisma:generate -w apps/backend",
+    "docker:up": "docker-compose up -d --build",
+    "docker:down": "docker-compose down",
     "backend:dev": "npm run dev -w apps/backend",
     "backend:build": "npm run build -w apps/backend",
-    "dashboard:dev": "npm run dev -w apps/web"
+    "dashboard:dev": "npm run dev -w apps/web",
+    "widget:dev": "npm run dev -w apps/widget"
   },
   "devDependencies": {
     "typescript": "^5.4.5",

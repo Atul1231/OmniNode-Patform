@@ -2,6 +2,11 @@ import express, { Request, Response, NextFunction } from 'express';
 import { createServer, Server as HTTPServer } from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import authRoutes from './routes/auth.routes.js';
 import agentRoutes from './routes/agent.routes.js';
 import { initSocketServer } from './sockets/socket.server.js';
@@ -10,6 +15,9 @@ import { prisma } from './config/db.js';
 import './queues/ticket.worker.js';
 import { webrtcRouter } from './routes/webrtc.routes.js';
 import { chatRouter } from './routes/chat.routes.js';
+import { conversationRouter } from './routes/conversation.routes.js';
+import organizationRoutes from './routes/organization.routes.js';
+import { protectRoute } from './middlewares/auth.middleware.js';
 // Load environment configurations safely
 dotenv.config();
 
@@ -54,11 +62,17 @@ app.use(cors({
   },
   credentials: true
 }));
+
+// Serve static assets (widget script and test page)
+app.use(express.static(path.join(__dirname, '../public')));
+
 app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/agent', agentRoutes);
 app.use('/api/webrtc', webrtcRouter);
 app.use('/api/chat', chatRouter);
+app.use('/api/conversations', conversationRouter);
+app.use('/api/organization', protectRoute as any, organizationRoutes);
 // Strictly typed health check route
 app.get('/health', (req: Request, res: Response): void => {
   res.status(200).json({ 

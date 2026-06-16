@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Website Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+    header {
+      background: #ffffff;
+      padding: 20px 40px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo { font-weight: 800; font-size: 24px; color: #4f46e5; }
+    .hero {
+      padding: 80px 40px;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 48px; margin-bottom: 16px; letter-spacing: -1px; }
+    p { font-size: 18px; color: #475569; margin-bottom: 32px; }
+    
+    .setup-box {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      padding: 32px;
+      border-radius: 12px;
+      text-align: left;
+      margin: 40px auto;
+      max-width: 500px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      font-family: monospace;
+      box-sizing: border-box;
+    }
+    button.btn-primary {
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+    button.btn-primary:hover { background: #4338ca; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">ACME Corp</div>
+    <div>Features • Pricing • Contact</div>
+  </header>
+
+  <div class="hero">
+    <h1>Welcome to the Acme Demo Store</h1>
+    <p>This page simulates a real customer's website. The OmniNode chat widget will appear in the bottom right corner once you provide your Workspace API Key.</p>
+
+    <div class="setup-box" id="setup-box">
+      <h3>Initialize Widget</h3>
+      <label>Enter your OmniNode API Key:</label>
+      <input type="text" id="api-key-input" placeholder="e.g. 123e4567-e89b-12d3-a456-426614174000" />
+      <button class="btn-primary" onclick="injectWidget()">Load Chat Widget</button>
+      <p style="font-size: 12px; color: #64748b; margin-top: 12px;">You can find your API Key in the settings menu of your Agent Dashboard, or on the success screen of the marketing site.</p>
+    </div>
+  </div>
+
+  <script>
+    // Auto-load if key is in URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const keyFromUrl = urlParams.get('apiKey');
+    
+    if (keyFromUrl) {
+      document.getElementById('api-key-input').value = keyFromUrl;
+      injectWidget();
+    }
+
+    function injectWidget() {
+      const key = document.getElementById('api-key-input').value.trim();
+      if (!key) {
+        alert("Please enter a valid API Key.");
+        return;
+      }
+
+      // Hide setup box
+      document.getElementById('setup-box').style.display = 'none';
+
+      // Dynamically inject the widget.js script with zero-config data attributes
+      const script = document.createElement('script');
+      script.src = 'http://localhost:5000/widget.js';
+      script.setAttribute('data-api-key', key);
+      script.defer = true;
+      document.body.appendChild(script);
+      
+      // Update URL for easy refreshing
+      window.history.replaceState({}, '', '?apiKey=' + key);
+    }
+  </script>
+
+</body>
+</html>

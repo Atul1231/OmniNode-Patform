@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 
-interface LoginFormProps {
-  onAuthSuccess: (token: string, organizationId: string) => void;
+interface RegisterFormProps {
+  onSuccess: (data: {
+    token: string;
+    apiKey: string;
+    user: { id: string; name: string; email: string; role: string; organizationId: string };
+  }) => void;
+  onBack: () => void;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
 }
 
 type FormMode = 'login' | 'register_admin' | 'register_agent';
 
-export const LoginForm: React.FC<LoginFormProps> = ({ onAuthSuccess, theme, onToggleTheme }) => {
-  const [formMode, setFormMode] = useState<FormMode>('login');
+export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, onBack, theme, onToggleTheme }) => {
+  const [formMode, setFormMode] = useState<FormMode>('register_admin'); // Default to org creation in widget
   
   // Shared structural form variables
   const [email, setEmail] = useState('');
@@ -49,7 +54,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onAuthSuccess, theme, onTo
         throw new Error(data.error || 'Authentication sequence failed.');
       }
 
-      onAuthSuccess(data.token, data.user.organizationId);
+      onSuccess({
+        token: data.token,
+        apiKey: data.apiKey || 'Retrieve from organization settings',
+        user: data.user
+      });
 
     } catch (err: any) {
       console.error('🚨 Authentication interaction crash:', err.message);
@@ -61,13 +70,21 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onAuthSuccess, theme, onTo
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-6 py-12 relative overflow-hidden">
-      {/* Background accents matching the widget app */}
+      {/* Background accents */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-violet-600/5 rounded-full blur-3xl" />
 
       <div className="w-full max-w-md relative z-10 animate-scale-in">
         {/* Top actions */}
-        <div className="flex items-center justify-end mb-8">
+        <div className="flex items-center justify-between mb-8">
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-300 transition-colors bg-transparent border-none cursor-pointer group"
+          >
+            <span className="inline-block transition-transform duration-200 group-hover:-translate-x-1">←</span>
+            Back to Home
+          </button>
+          
           <button
             onClick={onToggleTheme}
             className="text-xs font-medium text-slate-400 hover:text-indigo-400 transition-colors bg-transparent border-none cursor-pointer"
@@ -90,7 +107,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onAuthSuccess, theme, onTo
                'Join Workspace'}
             </h2>
             <p className="text-sm text-slate-400 mt-1.5 text-center">
-              {formMode === 'login' ? 'Sign in to access your tenant dashboard routes.' :
+              {formMode === 'login' ? 'Sign in to access your organization dashboard.' :
                formMode === 'register_admin' ? 'Set up a multi-tenant namespace in under 30 seconds.' :
                'Join your team to start answering customer queries.'}
             </p>
@@ -196,8 +213,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onAuthSuccess, theme, onTo
                 </>
               ) : (
                 <span>
-                  {formMode === 'login' ? 'Verify & Sign In' :
-                   formMode === 'register_admin' ? 'Create Workspace & Continue' :
+                  {formMode === 'login' ? 'Sign In' :
+                   formMode === 'register_admin' ? 'Create Workspace & Get API Key' :
                    'Join Workspace'}
                 </span>
               )}
@@ -235,15 +252,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onAuthSuccess, theme, onTo
               </>
             )}
           </div>
-        </div>
-
-        {/* Trust signals */}
-        <div className="mt-6 flex items-center justify-center gap-4 text-[11px] text-slate-600">
-          <span className="flex items-center gap-1">🔒 256-bit SSL</span>
-          <span>•</span>
-          <span className="flex items-center gap-1">🛡️ SOC 2 Ready</span>
-          <span>•</span>
-          <span className="flex items-center gap-1">🌍 GDPR Compliant</span>
         </div>
       </div>
     </div>
