@@ -9,6 +9,7 @@ import { pubClient, subClient } from './config/redis.js';
 import { prisma } from './config/db.js';
 import './queues/ticket.worker.js';
 import { webrtcRouter } from './routes/webrtc.routes.js';
+import { chatRouter } from './routes/chat.routes.js';
 // Load environment configurations safely
 dotenv.config();
 
@@ -53,10 +54,11 @@ app.use(cors({
   },
   credentials: true
 }));
-
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/agent', agentRoutes);
+app.use(express.json());
+app.use('/api/auth', authRoutes);
+app.use('/api/agent', agentRoutes);
 app.use('/api/webrtc', webrtcRouter);
+app.use('/api/chat', chatRouter);
 // Strictly typed health check route
 app.get('/health', (req: Request, res: Response): void => {
   res.status(200).json({ 
