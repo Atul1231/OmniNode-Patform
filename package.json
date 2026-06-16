@@ -1,5 +1,5 @@
 {
-  "name": "omnichannel-platform",
+  "name": "omninode-platform",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
@@ -8,12 +8,22 @@
   "scripts": {
     "backend:dev": "npm run dev -w apps/backend",
     "backend:build": "npm run build -w apps/backend",
-    "dashboard:dev": "npm run dev -w apps/agent-dashboard"
+    "dashboard:dev": "npm run dev -w apps/web"
   },
   "devDependencies": {
     "typescript": "^5.4.5",
     "@types/node": "^20.12.7",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Atul1231/OmniNode-Patform.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Atul1231/OmniNode-Patform/issues"
+  },
+  "homepage": "https://github.com/Atul1231/OmniNode-Patform#readme"
 }

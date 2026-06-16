@@ -1,5 +1,8 @@
 import { Redis } from 'ioredis';
+import dotenv from 'dotenv';
 
+// Force node to parse your local .env key-value tokens immediately
+dotenv.config();
 // Edge Case Guardrail: Ensure the platform refuses to boot if the Redis cluster URL is missing
 if (!process.env.REDIS_URL) {
   console.error('CRITICAL CONFIGURATION ERROR: REDIS_URL environment variable is completely undefined!');
