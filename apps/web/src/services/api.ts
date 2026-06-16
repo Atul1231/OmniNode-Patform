@@ -5,7 +5,7 @@
  * Reads the JWT token from localStorage and attaches it as Authorization header.
  */
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // TODO: FUTURE_EXPANSION_HOOKS — Replace hardcoded URL with environment variable (VITE_API_URL)
 // TODO: FUTURE_EXPANSION_HOOKS — AI auto-response trigger endpoint

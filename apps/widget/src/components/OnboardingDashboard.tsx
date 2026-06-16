@@ -23,7 +23,7 @@ export const OnboardingDashboard: React.FC<OnboardingDashboardProps> = ({ authDa
 
   const scriptSnippet = `<!-- OmniNode Live Chat Widget -->
 <script
-  src="http://localhost:5000/widget.js"
+  src="${import.meta.env.VITE_WIDGET_URL}"
   data-api-key="${authData.apiKey}"
   data-theme="dark"
   data-position="bottom-right"
@@ -204,7 +204,7 @@ OmniNode.init({
                   icon: '🖥️',
                   title: 'Open Agent Dashboard',
                   description: 'Manage conversations, monitor agents, and handle live tickets.',
-                  href: `http://localhost:3000?token=${authData.token}&orgId=${authData.user.organizationId}`,
+                  href: `${import.meta.env.VITE_APP_URL}?token=${authData.token}&orgId=${authData.user.organizationId}`,
                   accent: 'group-hover:border-indigo-500/30'
                 },
                 {
@@ -311,7 +311,7 @@ OmniNode.init({
               <pre className="text-[13px] leading-[1.8] overflow-x-auto whitespace-pre text-slate-300">
 <span className="text-slate-600">{'<!-- OmniNode Live Chat Widget -->'}</span>{'\n'}
 <span className="text-pink-400">{'<'}</span><span className="text-blue-400">script</span>{'\n'}
-{'  '}<span className="text-violet-400">src</span><span className="text-slate-500">=</span><span className="text-emerald-400">"http://localhost:5000/widget.js"</span>{'\n'}
+{'  '}<span className="text-violet-400">src</span><span className="text-slate-500">=</span><span className="text-emerald-400">"{import.meta.env.VITE_WIDGET_URL}"</span>{'\n'}
 {'  '}<span className="text-violet-400">data-api-key</span><span className="text-slate-500">=</span><span className="text-emerald-400">"{authData.apiKey}"</span>{'\n'}
 {'  '}<span className="text-violet-400">data-theme</span><span className="text-slate-500">=</span><span className="text-emerald-400">"dark"</span>{'\n'}
 {'  '}<span className="text-violet-400">data-position</span><span className="text-slate-500">=</span><span className="text-emerald-400">"bottom-right"</span>{'\n'}

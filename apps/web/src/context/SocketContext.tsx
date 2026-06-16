@@ -31,7 +31,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children, token,
     if (!organizationId) return;
 
     // 2. Initialize the real-time websocket client handshake link parameters
-    socketRef.current = io('http://localhost:5000', {
+    socketRef.current = io(import.meta.env.VITE_API_URL, {
       auth: {
         token,
         organizationId
