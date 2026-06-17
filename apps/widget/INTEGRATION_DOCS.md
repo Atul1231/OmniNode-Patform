@@ -13,7 +13,7 @@ If you have a standard website (WordPress, Webflow, Shopify, or custom HTML), si
 ```html
 <!-- OmniNode Live Chat Widget -->
 <script
-  src="https://your-domain.com/widget.js"
+  src="https://omninode-backend-bt5l.onrender.com/widget.js"
   data-api-key="YOUR_WORKSPACE_API_KEY"
   data-theme="dark"
   data-position="bottom-right"
@@ -44,7 +44,7 @@ export default function RootLayout({ children }) {
       <body>
         {children}
         <Script 
-          src="https://your-domain.com/widget.js" 
+          src="https://omninode-backend-bt5l.onrender.com/widget.js" 
           data-api-key="YOUR_WORKSPACE_API_KEY"
           strategy="lazyOnload" 
         />

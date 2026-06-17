@@ -46,7 +46,7 @@ export const DocsModal: React.FC<DocsModalProps> = ({ onClose }) => {
             <div className="bg-gray-950 border border-slate-800 rounded-xl p-4 mb-6 font-mono text-sm overflow-x-auto text-slate-300">
               <span className="text-slate-500">{'<!-- OmniNode Live Chat Widget -->'}</span><br/>
               <span className="text-pink-400">{'<'}</span><span className="text-blue-400">script</span><br/>
-              &nbsp;&nbsp;<span className="text-violet-400">src</span><span className="text-slate-500">=</span><span className="text-emerald-400">"https://your-domain.com/widget.js"</span><br/>
+              &nbsp;&nbsp;<span className="text-violet-400">src</span><span className="text-slate-500">=</span><span className="text-emerald-400">"https://omninode-backend-bt5l.onrender.com/widget.js"</span><br/>
               &nbsp;&nbsp;<span className="text-violet-400">data-api-key</span><span className="text-slate-500">=</span><span className="text-emerald-400">"YOUR_WORKSPACE_API_KEY"</span><br/>
               &nbsp;&nbsp;<span className="text-violet-400">data-theme</span><span className="text-slate-500">=</span><span className="text-emerald-400">"dark"</span><br/>
               &nbsp;&nbsp;<span className="text-violet-400">data-position</span><span className="text-slate-500">=</span><span className="text-emerald-400">"bottom-right"</span><br/>
@@ -81,7 +81,7 @@ export const DocsModal: React.FC<DocsModalProps> = ({ onClose }) => {
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-pink-400">{'<'}</span><span className="text-blue-400">body</span><span className="text-pink-400">{'>'}</span><br/>
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{'{'}children{'}'}<br/>
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-pink-400">{'<'}</span><span className="text-blue-400">Script</span><br/>
-              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-violet-400">src</span><span className="text-slate-500">=</span><span className="text-emerald-400">"https://your-domain.com/widget.js"</span><br/>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-violet-400">src</span><span className="text-slate-500">=</span><span className="text-emerald-400">"https://omninode-backend-bt5l.onrender.com/widget.js"</span><br/>
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-violet-400">data-api-key</span><span className="text-slate-500">=</span><span className="text-emerald-400">"YOUR_WORKSPACE_API_KEY"</span><br/>
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-violet-400">strategy</span><span className="text-slate-500">=</span><span className="text-emerald-400">"lazyOnload"</span><br/>
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span className="text-pink-400">{'/>'}</span><br/>
