@@ -44,16 +44,12 @@ const httpServer: HTTPServer = createServer(app);
 // Edge Case Guardrail: Strict payload constraints to prevent memory exhaustion DoS attacks
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
-// Set up granular multi-origin CORS arrays
-const allowedOrigins: string[] = env.ALLOWED_ORIGINS 
-  ? env.ALLOWED_ORIGINS.split(',') 
-  : ['http://localhost:3000', 'http://localhost:3001'];
+ 
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow server-to-server or local automated checks (where origin is undefined)
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || env.ALLOWED_ORIGINS.split(',').includes(origin)) {
       callback(null, true);
     } else {
       console.warn(`Security Warning: Request blocked by CORS from unauthorized origin: ${origin}`);
