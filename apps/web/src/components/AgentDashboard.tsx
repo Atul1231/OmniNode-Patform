@@ -292,7 +292,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({ onSignOut, theme
       {/* Upper Utility Header */}
       <header className="h-14 border-b border-slate-900 bg-slate-900/40 px-6 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <span className="text-indigo-400 font-bold text-lg">Ω</span>
+          <img src="/logo.svg" alt="OmniNode Logo" className="w-5 h-5" />
           <h1 className="text-sm font-semibold tracking-wide uppercase text-slate-200">OmniNode Control Console</h1>
         </div>
         

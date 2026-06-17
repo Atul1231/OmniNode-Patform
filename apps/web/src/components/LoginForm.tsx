@@ -82,7 +82,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onAuthSuccess, theme, onTo
           {/* Header */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-12 h-12 rounded-xl bg-indigo-600/15 border border-indigo-500/25 flex items-center justify-center mb-4">
-              <span className="text-indigo-400 font-bold text-xl">Ω</span>
+              <img src="/logo.svg" alt="OmniNode Logo" className="w-8 h-8" />
             </div>
             <h2 className="text-2xl font-bold tracking-tight text-white text-center">
               {formMode === 'login' ? 'Access Workspace' :

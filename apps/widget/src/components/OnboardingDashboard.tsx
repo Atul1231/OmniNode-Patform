@@ -73,7 +73,7 @@ OmniNode.init({
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center">
-              <span className="text-indigo-400 font-bold text-sm">Ω</span>
+              <img src="/logo.svg" alt="OmniNode Logo" className="w-5 h-5" />
             </div>
             <span className="text-lg font-bold tracking-tight">OmniNode</span>
           </div>
